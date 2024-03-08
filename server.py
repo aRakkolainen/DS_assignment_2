@@ -1,7 +1,11 @@
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 import xml.etree.ElementTree as ET
-# This handles the server side of the application and is based on this website: https://docs.python.org/3/library/xmlrpc.server.html#simplexmlrpcserver-example
+
+#server.py
+# This handles the server side of the application and is
+# based on this website: https://docs.python.org/3/library/xmlrpc.server.html#simplexmlrpcserver-example
+
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
@@ -22,6 +26,7 @@ with SimpleXMLRPCServer(('localhost', 8000),
             tree = ET.parse('db.xml')
             root = tree.getroot()
             topicFound = False
+            print("Trying to add new note..")
             # Checking if topic already exists
             for topic in root:
                 if (topic.get('name') == topicName):
@@ -44,12 +49,13 @@ with SimpleXMLRPCServer(('localhost', 8000),
                 newNoteTimestamp.text = timestamp
                 newTopic.set('name', topicName)
             tree.write("db.xml")
+            print("Note added successfully")
             return "Note saved successfully"
         except:
-            print("Error occurred")
+            print("Error occurred, saving note failed")
             return "Saving note failed!"
     server.register_function(addNote, 'addNote')
-    # Function for listing notes within specific topic, this simply prints them because it was complicated to return all notes
+    # Function for listing notes within specific topic, returns list of found notes
     def listNotes(topicName):
         tree = ET.parse('db.xml')
         root = tree.getroot()
@@ -65,6 +71,8 @@ with SimpleXMLRPCServer(('localhost', 8000),
                     if(len(name) != 0 and len(text) != 0 and len(timestamp) != 0):
                         note = Note(name, text.strip(), timestamp.strip())
                         notes.append(note)
+            else:
+                print("Topic not found")
         return notes
     server.register_function(listNotes, 'listNotes')
     try:
